@@ -1,0 +1,83 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-5 d-flex justify-content-center">
+
+    <div class="card shadow-lg p-4" style="width: 600px; border-radius: 16px;">
+
+        <!-- Title -->
+        <h3 class="text-center mb-4">Edit Profile</h3>
+
+        <!-- Profile Image Preview (optional) -->
+        <div class="text-center mb-3">
+            {% if user.profile.image %}
+            <div class="text-center mb-3">
+                <img id="profilePreview" src="{{ request.user.profile.image.url }}" class="profile-img rounded-circle"
+                    width="110" height="110">
+            </div>
+            {% else %}
+            <img src="{% static 'default-profile.png' %}" class="rounded-circle" width="110" height="110">
+            {% endif %}
+        </div>
+
+        <!-- Form -->
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- User Form -->
+            <div class="mb-3">
+                <label class="form-label">First Name</label>
+                {{ u_form.first_name }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                {{ u_form.last_name }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                {{ u_form.email }}
+            </div>
+
+            <!-- Profile Image -->
+            <div class="mb-3">
+                <label class="form-label">Profile Image</label>
+                {{ p_form.image }}
+            </div>
+            <!-- Button -->
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-success btn-lg">
+                    Save Changes
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const input = document.getElementById("id_image");
+        const preview = document.getElementById("profilePreview");
+
+        input.addEventListener("change", function () {
+            const file = this.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+<div class="container" style="margin-top: 70px;">
+
+    <!-- HEADER -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            {% if user.is_authenticated %}
+            <h2 style="font-weight:700; color:#1a1a2e;">
+                Welcome , <span style="color:green;"> {{user.get_full_name|default:user.username|capfirst}}</span> 👋
+            </h2>
+            {% endif %}
+        </div>
+    </div>
+    {% if budget %}
+
+    <!-- ALERTS -->
+    {% if day_changed %}
+    <div class="alert alert-info">🌅 A new day has started! Your daily limit has been reset.</div>
+    {% endif %}
+    {% if remaining_days <= 3 %} <div class="alert alert-danger">⚠ Only {{ remaining_days }} days left in your budget
+        cycle!
+</div>
+{% endif %}
+{% if is_over_today_limit %}
+<div class="alert alert-warning">⚠ You have exceeded today's spending limit!</div>
+{% endif %}
+
+
+<!-- 80% THRESHOLD WARNING -->
+{% if show_threshold_warning %}
+<div class="alert alert-danger d-flex align-items-center justify-content-between" id="threshold-alert"
+    style="border-left: 5px solid #ff0000; animation: fadeIn 0.5s ease-in;">
+    <div>
+        <strong>⚠️ Warning:</strong> You have used <strong>{{ spent_percentage }}%</strong>
+        of your allowance. Only <strong>{{ current_balance }} EGP</strong> remaining.
+    </div>
+</div>
+{% endif %}
+
+<!-- BUDGET PROGRESS BAR -->
+{% if budget %}
+<div class="card bg-dark text-white p-3 mb-3">
+    <div class="d-flex justify-content-between mb-1">
+        <small>Budget Used</small>
+        <small>{{ spent_percentage }}% of {{ budget.total_amount }} EGP</small>
+    </div>
+    <div class="progress" style="height: 10px; background-color: #444;">
+        <div class="progress-bar 
+                    {% if spent_percentage >= 80 %}bg-danger
+                    {% elif spent_percentage >= 50 %}bg-warning
+                    {% else %}bg-success{% endif %}" role="progressbar" style="width: {{ spent_percentage }}%;"
+            aria-valuenow="{{ spent_percentage }}" aria-valuemin="0" aria-valuemax="100">
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- TOP ROW: STATS + PIE CHART -->
+<div class="row g-3 mb-4">
+
+    <!-- LEFT: STAT CARDS -->
+    <div class="col-md-8">
+        <div class="row g-3">
+
+            <div class="col-6">
+                <div class="card bg-dark text-white p-3 text-center h-100">
+                    <h6 class="text-muted mb-1">Current Balance</h6>
+                    <h3 style="color:#ffd166;">{{ current_balance }} EGP</h3>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card bg-dark text-white p-3 text-center h-100">
+                    <h6 class="text-muted mb-1">Safe Daily Limit</h6>
+                    <h3 style="color:#00d4ff;">{{ safe_daily_limit }} EGP</h3>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card bg-dark text-white p-3 text-center h-100">
+                    <h6 class="text-muted mb-1">Remaining Today</h6>
+                    <h3 style="color:#00ffb3;">{{ remaining_daily_limit }} EGP</h3>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card bg-dark text-white p-3 text-center h-100">
+                    <h6 class="text-muted mb-1">Remaining Days</h6>
+                    <h3 style="color:#ff6b6b;">{{ remaining_days }}</h3>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card bg-dark text-white p-3 text-center">
+                    <h6 class="text-muted mb-1">Cycle Period</h6>
+                    <span>{{ budget.start_date }} → {{ budget.end_date }}</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- RIGHT: PIE CHART -->
+    <div class="col-md-4">
+        <div class="card bg-dark text-white p-3 text-center">
+            <h6 class="text-muted mb-2">Spending by Category</h6>
+            {% if expenses %}
+            <div style="max-height: 250px; display: flex; align-items: center; justify-content: center;">
+                <canvas id="expensePieChart"></canvas>
+            </div>
+            {% else %}
+            <p class="text-muted mt-3">No expenses yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- BOTTOM ROW: EXPENSE LIST + DELETE -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-12">
+        <div class="card bg-dark text-white p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Recent Expenses</h5>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'add_expense' %}" class="btn btn-sm btn-success">+ Add Expense</a>
+                    <form method="POST" action="{% url 'delete_budget' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger"
+                            onclick="return confirm('Are you sure? This will delete your budget cycle and ALL expenses.')">
+                            🗑️ Delete Cycle
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if expenses %}
+            {% for e in expenses %}
+            <div class="d-flex justify-content-between border-bottom py-2">
+                <span class="col-5">{{ e.get_category_display }}</span>
+                <span class="text-muted small col-4">{{ e.expense_date }}</span>
+                <span class="col-1" style="color:#ff6b6b;">-{{ e.amount }} EGP</span>
+                <span><a href="{% url 'delete_expense' e.id %}" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Delete this expense?')">
+                        Delete
+                    </a></span>
+            </div>
+            {% endfor %}
+            <div class="d-flex justify-content-between pt-3">
+                <strong class="col-11">Total Expenses</strong>
+                <strong class="col-1" style="color:#ff6b6b;">-{{ total_expenses }} EGP</strong>
+            </div>
+            {% else %}
+            <p class="text-muted">No expenses yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+{% else %}
+
+<!-- NO BUDGET -->
+<div class="d-flex flex-column align-items-center justify-content-center mb-2" style="min-height: 60vh;">
+    <div class="card bg-dark text-white text-center p-5"
+        style="max-width: 480px; width: 100%; border-radius: 16px; border: 1px solid #333;">
+        <div style="font-size: 60px; margin-bottom: 16px;">💰</div>
+        <h3 style="font-weight: 700;">No Budget Cycle Yet</h3>
+        <p style="color: #aaa; margin-bottom: 24px;">
+            Create your first budget cycle to start tracking your daily spending and stay in control of your finances.
+        </p>
+        <a href="{% url 'setup_budget' %}" class="btn btn-lg"
+            style="background-color: green; color: white; border-radius: 8px; font-weight: 600;">
+            Create Budget Cycle
+        </a>
+    </div>
+</div>
+
+{% endif %}
+</div>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = {{ category_labels| safe }};
+    const data = {{ category_data| safe }};
+
+    const colors = [
+        '#ff6b6b', '#ffd166', '#00d4ff',
+        '#00ffb3', '#a29bfe', '#fd79a8'
+    ];
+
+    const ctx = document.getElementById('expensePieChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors.slice(0, labels.length),
+                borderColor: '#1a1a2e',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: 'white',
+                        padding: 15,
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return ` ${context.label}: ${context.parsed} EGP (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock content %}
