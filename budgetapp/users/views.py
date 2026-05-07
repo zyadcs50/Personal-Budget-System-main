@@ -10,7 +10,7 @@ from .models import Expense, BudgetCycle, Profile
 
 class BudgetContext:
     def __init__(self, user, session):
-        today = timezone.localdate() + timezone.timedelta(days = 0)  # ✅ ensure local date is used consistently
+        today = timezone.localdate()
         expenses = Expense.objects.filter(user=user)
         budget = BudgetCycle.objects.filter(user=user).first()
         total_expenses = sum((e.amount for e in expenses), Decimal('0'))
@@ -97,13 +97,29 @@ class BudgetContext:
 
 
 
+@login_required
+def edit_expense(request, pk):
+    expense = get_object_or_404(Expense, id=pk, user=request.user)
+
+    if request.method == "POST":
+        form = ExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.expense_date = timezone.localdate()
+            expense.save()
+            request.session.pop('safe_daily_limit', None)
+            return redirect('expenses')
+    else:
+        form = ExpenseForm(instance=expense)
+
+    return render(request, 'users/edit_expense.html', {'form': form, 'expense': expense})
+
+
 
 def delete_expense(request, pk):
     expense = get_object_or_404(Expense, id=pk, user=request.user)
-
     expense.delete()
-
-    return redirect('expenses')
+    return redirect('home')
 
 
 @login_required
@@ -187,7 +203,7 @@ def add_expense(request):
         if form.is_valid():
             expense = form.save(commit=False)
             expense.user = request.user
-            expense.expense_date = timezone.localdate() + timezone.timedelta(days = 0)  # ✅ ensure local date is used consistently
+            expense.expense_date = timezone.localdate() 
 
             ctx = BudgetContext(request.user, request.session)
 
