@@ -6,7 +6,6 @@
 
 <div class="container" style="margin-top: 70px;">
 
-    <!-- HEADER -->
     <div class="row align-items-center mb-4">
         <div class="col-md-8">
             {% if user.is_authenticated %}
@@ -18,7 +17,6 @@
     </div>
     {% if budget %}
 
-    <!-- ALERTS -->
     {% if day_changed %}
     <div class="alert alert-info">🌅 A new day has started! Your daily limit has been reset.</div>
     {% endif %}
@@ -31,7 +29,7 @@
 {% endif %}
 
 
-<!-- 80% THRESHOLD WARNING -->
+<!-- 80%  WARNING -->
 {% if show_threshold_warning %}
 <div class="alert alert-danger d-flex align-items-center justify-content-between" id="threshold-alert"
     style="border-left: 5px solid #ff0000; animation: fadeIn 0.5s ease-in;">
@@ -42,7 +40,6 @@
 </div>
 {% endif %}
 
-<!-- BUDGET PROGRESS BAR -->
 {% if budget %}
 <div class="card bg-dark text-white p-3 mb-3">
     <div class="d-flex justify-content-between mb-1">
@@ -60,10 +57,8 @@
 </div>
 {% endif %}
 
-<!-- TOP ROW: STATS + PIE CHART -->
 <div class="row g-3 mb-4">
 
-    <!-- LEFT: STAT CARDS -->
     <div class="col-md-8">
         <div class="row g-3">
 
@@ -105,7 +100,6 @@
         </div>
     </div>
 
-    <!-- RIGHT: PIE CHART -->
     <div class="col-md-4">
         <div class="card bg-dark text-white p-3 text-center">
             <h6 class="text-muted mb-2">Spending by Category</h6>
@@ -120,7 +114,6 @@
     </div>
 </div>
 
-<!-- BOTTOM ROW: EXPENSE LIST + DELETE -->
 <div class="row g-3 mb-4">
 
     <div class="col-md-12">
@@ -183,7 +176,6 @@
 
 {% endif %}
 </div>
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const labels = {{ category_labels| safe }};

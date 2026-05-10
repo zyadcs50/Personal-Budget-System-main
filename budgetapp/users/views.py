@@ -3,14 +3,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from decimal import Decimal
-
 from .forms import UserRegisterForm, ExpenseForm, BudgetCycleForm, ProfileForm, UserUpdateForm
 from .models import Expense, BudgetCycle, Profile
+from datetime import  timedelta
+
 
 
 class BudgetContext:
     def __init__(self, user, session):
-        today = timezone.localdate()
+        today = timezone.localdate() + timedelta(days=0)
         expenses = Expense.objects.filter(user=user)
         budget = BudgetCycle.objects.filter(user=user).first()
         total_expenses = sum((e.amount for e in expenses), Decimal('0'))
@@ -34,7 +35,6 @@ class BudgetContext:
             self.spent_percentage = round(spent_percentage, 1)
             self.exceeeded_80 = spent_percentage >= 80
 
-            # --- Day changed check ---
             last_visited = session.get('last_visited_date')
             if last_visited:
                 last_visited_date = timezone.datetime.strptime(last_visited, '%Y-%m-%d').date()
@@ -42,10 +42,8 @@ class BudgetContext:
             else:
                 day_changed = False
 
-            # --- Update session date FIRST ---
             session['last_visited_date'] = today.strftime('%Y-%m-%d')
 
-            # --- Calculate safe_daily_limit once per day ---
             if day_changed or 'safe_daily_limit' not in session:
                 safe_daily_limit = round(remaining_balance / remaining_days, 2)
                 session['safe_daily_limit'] = float(safe_daily_limit)
@@ -54,10 +52,9 @@ class BudgetContext:
                 safe_daily_limit = Decimal(str(session['safe_daily_limit']))
                 print(f"Using cached safe_daily_limit: {safe_daily_limit}")
 
-            # --- Today's expenses using expense_date field ---
             today_expenses_qs = Expense.objects.filter(
                 user=user,
-                expense_date=today  # ✅ matches local date saved at creation
+                expense_date=today  
             )
             today_total = sum((e.amount for e in today_expenses_qs), Decimal('0'))
 
@@ -89,37 +86,50 @@ class BudgetContext:
             self.remaining_daily_limit = Decimal('0')
             self.spent_percentage = 0
             self.exceeeded_80 = False
-    
-            
 
     def as_dict(self):
         return {k: v for k, v in self.__dict__.items()}
 
 
 
-@login_required
-def edit_expense(request, pk):
-    expense = get_object_or_404(Expense, id=pk, user=request.user)
 
+@login_required
+def add_expense(request):
     if request.method == "POST":
-        form = ExpenseForm(request.POST, instance=expense)
+        form = ExpenseForm(request.POST)
+        confirmed = request.POST.get('confirmed') == 'true'
+
         if form.is_valid():
             expense = form.save(commit=False)
-            expense.expense_date = timezone.localdate()
+            expense.user = request.user
+            expense.expense_date = timezone.localdate() + timedelta(days=0)
+
+            ctx = BudgetContext(request.user, request.session)
+
+            if ctx.budget and not confirmed:
+                if expense.amount <= 0:
+                    form.add_error('amount', 'Expense must be greater than 0')
+                    return render(request, 'users/add_expense.html', {'form': form})
+
+                print(f"Adding: {expense.amount}, Remaining Today: {ctx.remaining_daily_limit}")
+
+                if expense.amount > ctx.remaining_daily_limit:
+                    return render(request, 'users/add_expense.html', {
+                        'form': form,
+                        'show_confirm': True,
+                        'remaining_today': ctx.remaining_daily_limit,
+                        'exceeded_by': round(expense.amount - ctx.remaining_daily_limit, 2),
+                    })
+
             expense.save()
-            request.session.pop('safe_daily_limit', None)
-            return redirect('expenses')
+            return redirect('home')
+
     else:
-        form = ExpenseForm(instance=expense)
+        form = ExpenseForm()
 
-    return render(request, 'users/edit_expense.html', {'form': form, 'expense': expense})
+    return render(request, 'users/add_expense.html', {'form': form})
 
 
-
-def delete_expense(request, pk):
-    expense = get_object_or_404(Expense, id=pk, user=request.user)
-    expense.delete()
-    return redirect('home')
 
 
 @login_required
@@ -194,42 +204,6 @@ def profile(request):
     return render(request, 'users/profile.html')
 
 
-@login_required
-def add_expense(request):
-    if request.method == "POST":
-        form = ExpenseForm(request.POST)
-        confirmed = request.POST.get('confirmed') == 'true'
-
-        if form.is_valid():
-            expense = form.save(commit=False)
-            expense.user = request.user
-            expense.expense_date = timezone.localdate() 
-
-            ctx = BudgetContext(request.user, request.session)
-
-            if ctx.budget and not confirmed:
-                if expense.amount <= 0:
-                    form.add_error('amount', 'Expense must be greater than 0')
-                    return render(request, 'users/add_expense.html', {'form': form})
-
-                print(f"Adding: {expense.amount}, Remaining Today: {ctx.remaining_daily_limit}")
-
-                if expense.amount > ctx.remaining_daily_limit:
-                    return render(request, 'users/add_expense.html', {
-                        'form': form,
-                        'show_confirm': True,
-                        'remaining_today': ctx.remaining_daily_limit,
-                        'exceeded_by': round(expense.amount - ctx.remaining_daily_limit, 2),
-                    })
-
-            expense.save()
-            return redirect('home')
-
-    else:
-        form = ExpenseForm()
-
-    return render(request, 'users/add_expense.html', {'form': form})
-
 
 def register(request):
     if request.method == "POST":
@@ -289,11 +263,6 @@ def setup_budget(request):
     return render(request, 'users/setup_budget.html', {'form': form})
 
 
-# @login_required
-# def expenses(request):
-#     expenses = Expense.objects.filter(user=request.user)
-#     return render(request, 'users/expenses.html', {'expenses': expenses})
-
 
 @login_required
 def delete_budget(request):
@@ -305,6 +274,33 @@ def delete_budget(request):
         messages.success(request, 'Budget cycle deleted successfully')
         return redirect('setup_budget')
     return redirect('home')
+
+
+
+@login_required
+def edit_expense(request, pk):
+    expense = get_object_or_404(Expense, id=pk, user=request.user)
+    if request.method == "POST":
+        form = ExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.expense_date = timezone.localdate()
+            expense.save()
+            return redirect('expenses')
+    else:
+        form = ExpenseForm(instance=expense)
+
+    return render(request, 'users/edit_expense.html', {'form': form, 'expense': expense})
+
+
+
+def delete_expense(request, pk):
+    expense = get_object_or_404(Expense, id=pk, user=request.user)
+    expense.delete()
+    return redirect('home')
+
+
+
 
 
 @login_required
@@ -334,3 +330,5 @@ def edit_profile(request):
         'u_form': u_form,
         'p_form': p_form
     })
+    
+    
