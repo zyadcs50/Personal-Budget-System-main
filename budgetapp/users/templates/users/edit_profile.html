@@ -3,81 +3,428 @@
 
 {% block content %}
 
-<div class="container mt-5 d-flex justify-content-center">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
-    <div class="card shadow-lg p-4" style="width: 600px; border-radius: 16px;">
+  :root {
+    --gold: #e8b84b;
+    --gold-dim: #c49a30;
+    --mint: #3de8a0;
+    --sky: #4ec9f0;
+    --rose: #f07070;
+    --surface: #111318;
+    --panel: #181c24;
+    --card: #1e2230;
+    --border: rgba(255,255,255,0.07);
+    --border-focus: rgba(232,184,75,0.5);
+    --text: #f0f0f4;
+    --muted: #7a7f94;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
 
-        <!-- Title -->
-        <h3 class="text-center mb-4">Edit Profile</h3>
+  * { box-sizing: border-box; }
 
-        <!-- Profile Image Preview (optional) -->
-        <div class="text-center mb-3">
-            {% if user.profile.image %}
-            <div class="text-center mb-3">
-                <img id="profilePreview" src="{{ request.user.profile.image.url }}" class="profile-img rounded-circle"
-                    width="110" height="110">
-            </div>
-            {% else %}
-            <img src="{% static 'default-profile.png' %}" class="rounded-circle" width="110" height="110">
-            {% endif %}
+  body {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    font-family: 'DM Sans', sans-serif !important;
+  }
+
+  /* Top bar */
+  .db-topbar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .db-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--gold);
+  }
+
+  .db-logo span { color: var(--text); }
+
+  .db-topbar-back {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.15s;
+  }
+
+  .db-topbar-back:hover { color: var(--text); }
+
+  /* Body */
+  .db-body {
+    padding: 48px 32px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Page title */
+  .db-page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .db-page-title em { color: var(--gold); font-style: normal; }
+
+  .db-page-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  /* Avatar upload area */
+  .db-avatar-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .db-avatar-ring {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    border: 3px solid rgba(232,184,75,0.35);
+    padding: 3px;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .db-avatar-ring:hover { border-color: var(--gold); }
+
+  .db-avatar-ring img {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .db-avatar-initials-lg {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    color: #111;
+    text-transform: uppercase;
+  }
+
+  .db-avatar-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 22px;
+  }
+
+  .db-avatar-ring:hover .db-avatar-overlay { opacity: 1; }
+
+  .db-avatar-hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Hide default file input */
+  #id_image { display: none; }
+
+  /* Form card */
+  .db-form-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .db-form-section-title {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .db-form-body { padding: 24px; }
+
+  .db-field { margin-bottom: 20px; }
+  .db-field:last-child { margin-bottom: 0; }
+
+  .db-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .db-label {
+    display: block;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    font-weight: 500;
+    margin-bottom: 7px;
+  }
+
+  /* Override Django form widget styles */
+  .db-form-body input[type="text"],
+  .db-form-body input[type="email"],
+  .db-form-body input[type="password"],
+  .db-form-body select,
+  .db-form-body textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text) !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 14px !important;
+    padding: 10px 14px !important;
+    outline: none !important;
+    transition: border-color 0.15s, background 0.15s !important;
+    box-shadow: none !important;
+  }
+
+  .db-form-body input[type="text"]:focus,
+  .db-form-body input[type="email"]:focus,
+  .db-form-body input[type="password"]:focus,
+  .db-form-body select:focus,
+  .db-form-body textarea:focus {
+    border-color: var(--border-focus) !important;
+    background: rgba(232,184,75,0.04) !important;
+  }
+
+  .db-form-body input::placeholder { color: var(--muted) !important; }
+
+  /* Error messages */
+  .db-form-body .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+  }
+
+  .db-form-body .errorlist li {
+    font-size: 12px;
+    color: var(--rose);
+  }
+
+  /* Image upload trigger button */
+  .db-upload-trigger {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px dashed rgba(255,255,255,0.15);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 13.5px;
+    font-family: 'DM Sans', sans-serif;
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s;
+    text-align: left;
+  }
+
+  .db-upload-trigger:hover {
+    border-color: rgba(232,184,75,0.35);
+    color: var(--gold);
+    background: rgba(232,184,75,0.04);
+  }
+
+  .db-upload-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .db-upload-filename {
+    font-size: 12px;
+    color: var(--mint);
+    margin-top: 6px;
+    display: none;
+  }
+
+  /* Footer */
+  .db-form-footer {
+    padding: 20px 24px;
+    background: rgba(255,255,255,0.02);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .db-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .db-btn.gold {
+    background: var(--gold);
+    color: #111;
+    border-color: var(--gold);
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .db-btn.gold:hover { background: var(--gold-dim); border-color: var(--gold-dim); color: #111; }
+
+  .db-btn.ghost {
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .db-btn.ghost:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+  @media (max-width: 600px) {
+    .db-body { padding: 24px 16px; }
+    .db-topbar { padding: 14px 16px; }
+    .db-field-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<!-- Top bar -->
+<div class="db-topbar">
+  <a href="{% url 'profile' %}" class="db-topbar-back">← Back to Profile</a>
+</div>                          
+
+<div class="db-body">
+
+  <div class="db-page-title">Edit <em>Profile</em></div>
+  <div class="db-page-sub">Update your personal information and profile picture.</div>
+
+  <!-- Avatar upload -->
+  <div class="db-avatar-upload">
+    <div class="db-avatar-ring" onclick="document.getElementById('id_image').click()">
+      {% if user.profile.image %}
+        <img id="profilePreview" src="{{ request.user.profile.image.url }}" alt="{{ user.username }}">
+      {% else %}
+        <div class="db-avatar-initials-lg" id="profileInitials">
+          {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+        </div>
+        <img id="profilePreview" src="" alt="" style="display:none; width:100%; height:100%; border-radius:50%; object-fit:cover;">
+      {% endif %}
+      <div class="db-avatar-overlay">📷</div>
+    </div>
+    <div class="db-avatar-hint">Click to change photo</div>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="db-form-card">
+
+      <!-- Personal info section -->
+      <div class="db-form-section-title">Personal Information</div>
+      <div class="db-form-body">
+
+        <div class="db-field-row">
+          <div class="db-field">
+            <label class="db-label">First Name</label>
+            {{ u_form.first_name }}
+          </div>
+          <div class="db-field">
+            <label class="db-label">Last Name</label>
+            {{ u_form.last_name }}
+          </div>
         </div>
 
-        <!-- Form -->
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
+        <div class="db-field">
+          <label class="db-label">Email Address</label>
+          {{ u_form.email }}
+        </div>
 
-            <!-- User Form -->
-            <div class="mb-3">
-                <label class="form-label">First Name</label>
-                {{ u_form.first_name }}
-            </div>
+      </div>
 
-            <div class="mb-3">
-                <label class="form-label">Last Name</label>
-                {{ u_form.last_name }}
-            </div>
+      <!-- Photo section -->
+      <div class="db-form-section-title" style="border-top: 1px solid var(--border);">Profile Photo</div>
+      <div class="db-form-body">
+        <div class="db-field">
+          <label class="db-label">Upload New Image</label>
+          {{ p_form.image }}
+          <button type="button" class="db-upload-trigger" onclick="document.getElementById('id_image').click()">
+            <span class="db-upload-icon">🖼️</span>
+            <span id="uploadLabel">Choose an image file...</span>
+          </button>
+          <div class="db-upload-filename" id="uploadFilename"></div>
+        </div>
+      </div>
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                {{ u_form.email }}
-            </div>
+      <!-- Footer -->
+      <div class="db-form-footer">
+        <a href="{% url 'profile' %}" class="db-btn ghost">Cancel</a>
+        <button type="submit" class="db-btn gold">Save Changes</button>
+      </div>
 
-            <!-- Profile Image -->
-            <div class="mb-3">
-                <label class="form-label">Profile Image</label>
-                {{ p_form.image }}
-            </div>
-            <!-- Button -->
-            <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-success btn-lg">
-                    Save Changes
-                </button>
-            </div>
-
-        </form>
     </div>
 
+  </form>
 </div>
 
-
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const input = document.getElementById("id_image");
-        const preview = document.getElementById("profilePreview");
+  document.addEventListener("DOMContentLoaded", function () {
+    const input    = document.getElementById("id_image");
+    const preview  = document.getElementById("profilePreview");
+    const initials = document.getElementById("profileInitials");
+    const label    = document.getElementById("uploadLabel");
+    const filename = document.getElementById("uploadFilename");
 
-        input.addEventListener("change", function () {
-            const file = this.files[0];
+    input.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
 
-            if (file) {
-                const reader = new FileReader();
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+        if (initials) initials.style.display = "none";
+      };
+      reader.readAsDataURL(file);
 
-                reader.onload = function (e) {
-                    preview.src = e.target.result;
-                };
-
-                reader.readAsDataURL(file);
-            }
-        });
+      label.textContent = "Image selected — ready to save";
+      filename.textContent = "📎 " + file.name;
+      filename.style.display = "block";
     });
+  });
 </script>
+
 {% endblock %}

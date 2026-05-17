@@ -6,134 +6,122 @@
 {{ category_labels|json_script:"category-labels" }}
 {{ category_data|json_script:"category-data" }}
 
-<div class="container" style="margin-top: 70px;">
+    <link rel=" stylesheet" href="{% static 'users/css/expense.css' %}">
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 style="font-weight:700; color:#1a1a2e;">
-                Transaction <span style="color:#fd5e14;">History</span>
-            </h2>
-            <p style="color:gray; margin-bottom:0;">
-                All your recorded expenses for this cycle, sorted by date.
-            </p>
-        </div>
-        <!-- <a href="{% url 'add_expense' %}" class="btn"
-           style="background-color:#fd5e14; color:white; font-weight:600; border-radius:8px;">
-            + Add Expense
-        </a> -->
+
+
+<div class="db-body">
+
+  <!-- Page header -->
+  <div class="db-page-header">
+    <div>
+      <div class="db-page-title">Transaction <em>History</em></div>
+      <div class="db-page-sub">All your recorded expenses for this cycle, sorted by date.</div>
+    </div>
+    <a href="{% url 'add_expense' %}" class="db-btn-add">+ Add Expense</a>
+  </div>
+
+  {% if expenses %}
+
+  <!-- Summary strip -->
+  <div class="db-summary-strip">
+    <div class="db-summary-pill">
+      <div class="db-summary-pill-label">Total Spent</div>
+      <div class="db-summary-pill-val" style="color:var(--rose);">{{ total_expenses }} EGP</div>
+    </div>
+    <div class="db-summary-pill">
+      <div class="db-summary-pill-label">Transactions</div>
+      <div class="db-summary-pill-val" style="color:var(--sky);">{{ expenses|length }}</div>
+    </div>
+  </div>
+
+  <!-- Transaction list -->
+  <div class="db-tx-card">
+    <div class="db-tx-card-header">
+      <div class="db-tx-card-title">All Transactions</div>
+      <div class="db-tx-count">{{ expenses|length }} records</div>
     </div>
 
-    {% if expenses %}
+    {% regroup expenses by expense_date as expenses_by_date %}
 
-    <!-- TRANSACTION LIST -->
-    <div class="card bg-dark text-white p-4">
-        <h5 class="mb-3">All Transactions</h5>
+    {% for date_group in expenses_by_date %}
 
-        {% regroup expenses by expense_date as expenses_by_date %}
-
-        {% for date_group in expenses_by_date %}
-        <!-- DATE HEADER -->
-        <div class="d-flex align-items-center my-3">
-            <span class="badge me-2"
-                style="background-color:#fd5e14; font-size:12px; padding:6px 12px; border-radius:20px;">
-                📅 {{ date_group.grouper }}
-            </span>
-            <hr class="flex-grow-1" style="border-color:#444; margin:0;">
-        </div>
-
-        {% for e in date_group.list %}
-        <div class="d-flex justify-content-between align-items-center border-bottom py-2 px-2"
-            style="border-color:#333 !important;">
-            <div class="d-flex align-items-center gap-2">
-                <span style="font-size:20px;">
-                    {% if e.category == 'food' %}🍔
-                    {% elif e.category == 'transport' %}🚗
-                    {% elif e.category == 'study' %}📚
-                    {% elif e.category == 'shopping' %}🛍️
-                    {% elif e.category == 'bills' %}💡
-                    {% else %}📦{% endif %}
-                </span>
-                <div>
-                    <div style="font-weight:600;">{{ e.get_category_display }}</div>
-                    <small style="color:#aaa;">🕐 {{ e.date|time:"H:i" }}</small>
-                </div>
-            </div>
-
-            <div class="d-flex align-items-center gap-3">
-                <span style="color:#ff6b6b; font-weight:600; font-size:16px;">
-                    -{{ e.amount }} EGP
-                </span>
-
-                <a href="{% url 'edit_expense' e.id %}" 
-                class="btn btn-sm"
-                style="background-color:#ffd166; color:#1a1a2e; border-radius:6px; font-size:12px;">
-                    ✏️ Edit
-                </a>
-
-                <form method="POST" action="{% url 'delete_expense' e.id %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm"
-                            style="background-color:#ff6b6b; color:white; border-radius:6px; font-size:12px;"
-                            onclick="return confirm('Delete this expense?')">
-                        🗑️
-                    </button>
-                </form>
-            </div>
-        </div>
-        {% endfor %}
-
-        {% endfor %}
-
-        <!-- TOTAL -->
-        <div class="d-flex justify-content-between pt-3 mt-3">
-            <strong style="font-size:16px;">Total Spent</strong>
-            <strong style="color:#ff6b6b; font-size:16px;">
-                {{ expenses|length }} transactions |
-                -{{ total_expenses }} EGP
-                <!-- {% with total=0 %}
-                {% endwith %} -->
-            </strong>
-        </div>
+    <!-- Date group header -->
+    <div class="db-date-group">
+      <div class="db-date-badge">📅 {{ date_group.grouper }}</div>
+      <div class="db-date-line"></div>
     </div>
 
-    {% else %}
+    {% for e in date_group.list %}
+    <div class="db-tx-row">
+      <div class="db-tx-icon">
+        {% if e.category == 'food' %}🍔
+        {% elif e.category == 'transport' %}🚗
+        {% elif e.category == 'study' %}📚
+        {% elif e.category == 'shopping' %}🛍️
+        {% elif e.category == 'bills' %}💡
+        {% else %}📦{% endif %}
+      </div>
+
+      <div class="db-tx-info">
+        <div class="db-tx-cat">{{ e.get_category_display }}</div>
+        <div class="db-tx-time">🕐 {{ e.expense_date|time:"H:i" }}</div>
+      </div>
+
+      <div class="db-tx-amt">-{{ e.amount }} EGP</div>
+
+      <div class="db-tx-actions">
+        <a href="{% url 'edit_expense' e.id %}" class="db-edit-btn">✏️ Edit</a>
+        <form method="POST" action="{% url 'delete_expense' e.id %}" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="db-del-btn"
+                  onclick="return confirm('Delete this expense?')">🗑️</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% endfor %}
+
+    <div class="db-tx-footer">
+      <div class="db-tx-footer-label">Total Spent this Cycle</div>
+      <div class="db-tx-footer-val">-{{ total_expenses }} EGP</div>
+    </div>
+  </div>
+
+  {% else %}
 
     {% if not has_budget %}
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 60vh;">
-        <div class="card bg-dark text-white text-center p-5"
-            style="max-width: 480px; width: 100%; border-radius: 16px; border: 1px solid #333;">
-            <div style="font-size: 60px; margin-bottom: 16px;">💰</div>
-            <h3 style="font-weight: 700;">No Budget Cycle Yet</h3>
-            <p style="color: #aaa; margin-bottom: 24px;">
-                Create your first budget cycle to start tracking your daily spending and stay in control of your
-                finances.
-            </p>
-            <a href="{% url 'setup_budget' %}" class="btn btn-lg"
-                style="background-color: green; color: white; border-radius: 8px; font-weight: 600;">
-                Create Budget Cycle
-            </a>
+    <!-- No budget state -->
+    <div class="db-empty">
+      <div class="db-empty-card">
+        <div class="db-empty-icon">💰</div>
+        <div class="db-empty-title">No Budget Cycle Yet</div>
+        <div class="db-empty-desc">
+          Create your first budget cycle to start tracking your daily
+          spending and stay in control of your finances.
         </div>
+        <a href="{% url 'setup_budget' %}" class="db-empty-btn gold">Create Budget Cycle</a>
+      </div>
     </div>
 
     {% else %}
-
-    <!-- NO EXPENSES -->
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height:50vh;">
-        <div class="card bg-dark text-white text-center p-5"
-            style="max-width:480px; width:100%; border-radius:16px; border:1px solid #333;">
-            <div style="font-size:60px; margin-bottom:16px;">🧾</div>
-            <h3 style="font-weight:700;">No Transactions Yet</h3>
-            <p style="color:#aaa; margin-bottom:24px;">
-                You haven't logged any expenses yet. Start tracking your spending!
-            </p>
-            <a href="{% url 'add_expense' %}" class="btn btn-lg"
-                style="background-color:#fd5e14; color:white; border-radius:8px; font-weight:600;">
-                + Add First Expense
-            </a>
+    <!-- No expenses state -->
+    <div class="db-empty">
+      <div class="db-empty-card">
+        <div class="db-empty-icon">🧾</div>
+        <div class="db-empty-title">No Transactions Yet</div>
+        <div class="db-empty-desc">
+          You haven't logged any expenses yet.
+          Start tracking your spending!
         </div>
+        <a href="{% url 'add_expense' %}" class="db-empty-btn mint">+ Add First Expense</a>
+      </div>
     </div>
     {% endif %}
-    {% endif %}
+
+  {% endif %}
+
 </div>
+
 {% endblock %}
