@@ -4,21 +4,241 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
-<div class="container" style="margin-top: 30px;">
-    <form action="" method="POST">
-        {% csrf_token %}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4 pb-1 " style="color: dark;">Sign In Now</legend>
-            {{ form|crispy }}
-        </fieldset>
 
-        <div class="form-group mt-4 mb-1" id="signup-button">
-            <button class="btn">Sign In</button>
-        </div>
-        <div class="form-group">
-            <small class="text-muted ml-3">Don't have an account yet? <a href="{% url 'register' %}">Sign Up
-                    Today</a></small>
-        </div>
-    </form>
+<style>
+  html, body {
+    background: #111318 !important;
+    min-height: 100%;
+  }
+
+  .login-wrap {
+    min-height: calc(100vh - 56px); /* 56px = navbar height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    background: #111318;
+    position: relative;
+  }
+
+  /* subtle radial glow in background */
+  .login-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(232,184,75,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(61,232,160,0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-card-top {
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--mint));
+  }
+
+  .login-card-body {
+    padding: 36px 36px 28px;
+  }
+
+  .login-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+
+  .login-brand-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: rgba(232,184,75,0.12);
+    border: 1px solid rgba(232,184,75,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .login-brand-name {
+    font-family: "Syne", sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--gold);
+  }
+
+  .login-brand-name span { color: var(--text); }
+
+  .login-title {
+    font-family: "Syne", sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #ffffff;
+  }
+
+  .login-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  .login-card-body label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 500;
+    margin-bottom: 7px;
+    font-family: "DM Sans", sans-serif;
+  }
+
+  .login-card-body input[type="text"],
+  .login-card-body input[type="email"],
+  .login-card-body input[type="password"] {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-sm);
+    color: #ffffff;
+    font-family: "DM Sans", sans-serif;
+    font-size: 14px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    box-shadow: none;
+    -webkit-appearance: none;
+  }
+
+  .login-card-body input[type="text"]:focus,
+  .login-card-body input[type="email"]:focus,
+  .login-card-body input[type="password"]:focus {
+    border-color: rgba(232,184,75,0.45);
+    background: rgba(232,184,75,0.03);
+  }
+
+  .login-card-body input::placeholder { color: var(--muted); }
+
+  .login-card-body .asteriskField { display: none; }
+
+  .login-card-body .form-group,
+  .login-card-body .mb-3 {
+    margin-bottom: 18px !important;
+  }
+
+  .login-card-body .form-text,
+  .login-card-body small {
+    font-size: 11.5px;
+    color: var(--muted) !important;
+  }
+
+  .login-card-body .invalid-feedback,
+  .login-card-body .errorlist {
+    font-size: 12px;
+    color: var(--rose);
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0;
+  }
+
+  .login-submit {
+    width: 100%;
+    padding: 12px;
+    background: var(--gold);
+    color: #111;
+    font-family: "Syne", sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 6px;
+    letter-spacing: 0.2px;
+  }
+
+  .login-submit:hover { background: var(--gold-dim); }
+  .login-submit:active { transform: scale(0.99); opacity: 0.9; }
+
+  .login-error-alert {
+    background: rgba(240,112,112,0.08);
+    border: 1px solid rgba(240,112,112,0.2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #f0a0a0;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .login-footer {
+    text-align: center;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.5);
+    padding: 18px 36px 24px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.015);
+  }
+
+  .login-footer a {
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+
+  .login-footer a:hover { opacity: 0.8; }
+</style>
+
+<div class="login-wrap">
+  <div class="login-card">
+
+    <div class="login-card-top"></div>
+
+    <div class="login-card-body">
+
+      <div class="login-brand">
+        <div class="login-brand-icon">💰</div>
+        <div class="login-brand-name">Spend<span>Track</span></div>
+      </div>
+
+      <div class="login-title">Welcome back</div>
+      <div class="login-sub">Sign in to your account to continue.</div>
+
+      {% if form.non_field_errors %}
+      <div class="login-error-alert">
+        <span>⚠️</span>
+        <span>{{ form.non_field_errors|join:", " }}</span>
+      </div>
+      {% endif %}
+
+      <form method="POST" action="">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="login-submit">Sign In</button>
+      </form>
+
+    </div>
+
+    <div class="login-footer">
+      Don't have an account yet?
+      <a href="{% url 'register' %}">Create one — it's free</a>
+    </div>
+
+  </div>
 </div>
-{% endblock %}</title>
+
+{% endblock %}

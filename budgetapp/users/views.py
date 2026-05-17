@@ -8,10 +8,9 @@ from .models import Expense, BudgetCycle, Profile
 from datetime import  timedelta
 
 
-
 class BudgetContext:
     def __init__(self, user, session):
-        today = timezone.localdate() + timedelta(days=0)
+        today = timezone.localdate() + timedelta(days=1)
         expenses = Expense.objects.filter(user=user)
         budget = BudgetCycle.objects.filter(user=user).first()
         total_expenses = sum((e.amount for e in expenses), Decimal('0'))
@@ -29,42 +28,50 @@ class BudgetContext:
 
             total_days = (budget.end_date - budget.start_date).days + 1
             remaining_balance = budget.total_amount - total_expenses
-            
-            
+
             spent_percentage = (total_expenses / budget.total_amount) * 100
             self.spent_percentage = round(spent_percentage, 1)
             self.exceeeded_80 = spent_percentage >= 80
 
+            # --- Day changed check using DB ---
+            last_updated = budget.limit_last_updated
+            if last_updated:
+                day_changed = last_updated < today
+            else:
+                day_changed = True  # first time ever
+
+            # --- Recalculate only if day changed ---
+            if day_changed:
+                safe_daily_limit = round(remaining_balance / remaining_days, 2)
+                # Save to DB so it persists across logouts
+                budget.current_day_limit = safe_daily_limit
+                budget.limit_last_updated = today
+                budget.save()
+                print(f"Recalculated safe_daily_limit: {safe_daily_limit}")
+            else:
+                safe_daily_limit = budget.current_day_limit
+                print(f"Using DB cached safe_daily_limit: {safe_daily_limit}")
+
+            # Also update session for fast access
+            session['safe_daily_limit'] = float(safe_daily_limit)
+            session['last_visited_date'] = today.strftime('%Y-%m-%d')
+
+            # Day changed for UI notification
             last_visited = session.get('last_visited_date')
             if last_visited:
                 last_visited_date = timezone.datetime.strptime(last_visited, '%Y-%m-%d').date()
-                day_changed = last_visited_date < today
+                day_changed_ui = last_visited_date < today
             else:
-                day_changed = False
+                day_changed_ui = False
 
-            session['last_visited_date'] = today.strftime('%Y-%m-%d')
-
-            if day_changed or 'safe_daily_limit' not in session:
-                safe_daily_limit = round(remaining_balance / remaining_days, 2)
-                session['safe_daily_limit'] = float(safe_daily_limit)
-                print(f"Recalculated safe_daily_limit: {safe_daily_limit}")
-            else:
-                safe_daily_limit = Decimal(str(session['safe_daily_limit']))
-                print(f"Using cached safe_daily_limit: {safe_daily_limit}")
-
-            today_expenses_qs = Expense.objects.filter(
-                user=user,
-                expense_date=today  
-            )
+            today_expenses_qs = Expense.objects.filter(user=user, expense_date=today)
             today_total = sum((e.amount for e in today_expenses_qs), Decimal('0'))
-
-            print(f"Today: {today}, Today expenses: {list(today_expenses_qs.values('category', 'amount', 'expense_date'))}")
 
             remaining_daily_limit = safe_daily_limit - today_total
             if remaining_daily_limit < 0:
                 remaining_daily_limit = Decimal('0')
 
-            self.day_changed = day_changed
+            self.day_changed = day_changed_ui
             self.remaining_days = remaining_days
             self.total_days = total_days
             self.remaining_balance = remaining_balance
@@ -92,7 +99,6 @@ class BudgetContext:
 
 
 
-
 @login_required
 def add_expense(request):
     if request.method == "POST":
@@ -102,7 +108,7 @@ def add_expense(request):
         if form.is_valid():
             expense = form.save(commit=False)
             expense.user = request.user
-            expense.expense_date = timezone.localdate() + timedelta(days=0)
+            expense.expense_date = timezone.localdate() + timedelta(days=1)
 
             ctx = BudgetContext(request.user, request.session)
 

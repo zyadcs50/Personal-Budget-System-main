@@ -3,106 +3,376 @@
 
 {% block content %}
 
-<div class="container mt-5 ">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
-    <div class="row justify-content-center">
+  :root {
+    --gold: #e8b84b;
+    --gold-dim: #c49a30;
+    --mint: #3de8a0;
+    --sky: #4ec9f0;
+    --rose: #f07070;
+    --surface: #111318;
+    --panel: #181c24;
+    --card: #1e2230;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f4;
+    --muted: #7a7f94;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
 
-        <div class="col-md-8">
+  * { box-sizing: border-box; }
 
-            <!-- PROFILE CARD -->
-            <div class="card bg-dark text-white p-4 shadow-lg" style="border-radius: 16px;">
+  body {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    font-family: 'DM Sans', sans-serif !important;
+  }
 
-                <!-- Avatar -->
-                <div class="text-center mb-3">
-                    {% if user.profile.image %}
-                    <img src="{{ request.user.profile.image.url }}" class="rounded-circle profile-img" width="120"
-                        height="120">
-                    {% else %}
-                    <img src="/media/default-profile.png" class="rounded-circle profile-img" width="120" height="120">
-                    {% endif %}
-                </div>
+  /* Top bar */
+  .db-topbar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
 
-                <!-- Basic Info -->
-                <div class="text-center mb-3">
-                    <h3 class="fw-bold">{{ user.username }}</h3>
-                    <p class="text-muted mb-0">{{ user.email }}</p>
-                    <small class="text-secondary">
-                        ID: {{ user.id }}
-                    </small>
-                </div>
+  .db-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--gold);
+  }
 
-                <hr style="background-color:#444;">
+  .db-logo span { color: var(--text); }
 
-                <!-- INFO GRID -->
-                <div class="row text-start">
+  .db-topbar-back {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.15s;
+  }
 
-                    <div class="col-md-6 mb-2">
-                        <strong>Username:</strong> {{ user.username }}
-                    </div>
+  .db-topbar-back:hover { color: var(--text); }
 
-                    <div class="col-md-6 mb-2">
-                        <strong>Email:</strong> {{ user.email }}
-                    </div>
+  /* Body */
+  .db-body {
+    padding: 48px 32px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
 
-                    <div class="col-md-6 mb-2">
-                        <strong>First Name:</strong> {{ user.first_name|default:"-" }}
-                    </div>
+  /* Profile card */
+  .db-profile-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
 
-                    <div class="col-md-6 mb-2">
-                        <strong>Last Name:</strong> {{ user.last_name|default:"-" }}
-                    </div>
+  /* Banner */
+  .db-profile-banner {
+    height: 90px;
+    background: linear-gradient(135deg, #1a1f2e 0%, #2a2040 50%, #1a2535 100%);
+    position: relative;
+  }
 
-                    <div class="col-md-6 mb-2">
-                        <strong>Joined:</strong> {{ user.date_joined|date:"Y-m-d" }}
-                    </div>
+  .db-profile-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 20px,
+      rgba(232,184,75,0.04) 20px,
+      rgba(232,184,75,0.04) 40px
+    );
+  }
 
-                    <div class="col-md-6 mb-2">
-                        <strong>Last Login:</strong>
-                        {{ user.last_login|date:"Y-m-d H:i"|default:"Never" }}
-                    </div>
+  /* Avatar area */
+  .db-avatar-area {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 32px;
+    margin-top: -40px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
 
-                    <div class="col-md-6 mb-2">
-                        <strong>Status:</strong>
-                        {% if user.is_active %}
-                        <span class="text-success">Active</span>
-                        {% else %}
-                        <span class="text-danger">Inactive</span>
-                        {% endif %}
-                    </div>
+  .db-avatar-wrap {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--card);
+    overflow: hidden;
+    background: var(--panel);
+    flex-shrink: 0;
+  }
 
-                    <div class="col-md-6 mb-2">
-                        <strong>Role:</strong>
-                        {% if user.is_superuser %}
-                        Admin
-                        {% elif user.is_staff %}
-                        Staff
-                        {% else %}
-                        User
-                        {% endif %}
-                    </div>
+  .db-avatar-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
 
-                </div>
+  .db-avatar-initials {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--card);
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    color: #111;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
 
-                <hr style="background-color:#444;">
+  .db-role-badge {
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 99px;
+    border: 1px solid;
+  }
 
-                <!-- BUTTONS -->
-                <div class="mt-3 d-flex justify-content-center gap-2">
+  .db-role-badge.admin  { background: rgba(240,112,112,0.1); color: var(--rose); border-color: rgba(240,112,112,0.25); }
+  .db-role-badge.staff  { background: rgba(78,201,240,0.1); color: var(--sky); border-color: rgba(78,201,240,0.25); }
+  .db-role-badge.user   { background: rgba(61,232,160,0.1); color: var(--mint); border-color: rgba(61,232,160,0.25); }
 
-                    <a href="{% url 'edit_profile' %}" class="btn btn-warning px-4">
-                        Edit Profile
-                    </a>
+  /* Identity section */
+  .db-identity {
+    padding: 0 32px 24px;
+    border-bottom: 1px solid var(--border);
+  }
 
-                    <a href="{% url 'home' %}" class="btn btn-outline-light px-4">
-                        Back Home
-                    </a>
+  .db-username {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
 
-                </div>
+  .db-email {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
 
-            </div>
+  .db-user-id {
+    font-size: 11.5px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 2px 10px;
+    display: inline-block;
+    font-family: monospace;
+  }
 
+  /* Info grid */
+  .db-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 8px 0;
+  }
+
+  .db-info-cell {
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  .db-info-cell:nth-child(even) { border-right: none; }
+  .db-info-cell:nth-last-child(-n+2) { border-bottom: none; }
+
+  .db-info-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    font-weight: 500;
+    margin-bottom: 5px;
+  }
+
+  .db-info-val {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .db-status-active   { color: var(--mint); }
+  .db-status-inactive { color: var(--rose); }
+
+  /* Action footer */
+  .db-profile-footer {
+    padding: 20px 32px;
+    background: rgba(255,255,255,0.02);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .db-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .db-btn.gold {
+    background: rgba(232,184,75,0.12);
+    color: var(--gold);
+    border-color: rgba(232,184,75,0.3);
+  }
+
+  .db-btn.gold:hover { background: rgba(232,184,75,0.22); color: var(--gold); }
+
+  .db-btn.ghost {
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .db-btn.ghost:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+  @media (max-width: 600px) {
+    .db-body { padding: 24px 16px; }
+    .db-topbar { padding: 14px 16px; }
+    .db-info-grid { grid-template-columns: 1fr; }
+    .db-info-cell { border-right: none; }
+    .db-info-cell:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
+    .db-info-cell:last-child { border-bottom: none; }
+    .db-avatar-area { flex-direction: column; align-items: flex-start; gap: 10px; }
+  }
+</style>
+
+
+
+<div class="db-body">
+
+  <div class="db-profile-card">
+
+    <!-- Banner -->
+    <div class="db-profile-banner"></div>
+
+    <!-- Avatar + role badge -->
+    <div class="db-avatar-area">
+      {% if user.profile.image %}
+        <div class="db-avatar-wrap">
+          <img src="{{ request.user.profile.image.url }}" alt="{{ user.username }}">
         </div>
+      {% else %}
+        <div class="db-avatar-initials">
+          {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+        </div>
+      {% endif %}
+
+      <div>
+        {% if user.is_superuser %}
+          <div class="db-role-badge admin">Admin</div>
+        {% elif user.is_staff %}
+          <div class="db-role-badge staff">Staff</div>
+        {% else %}
+          <div class="db-role-badge user">User</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Identity -->
+    <div class="db-identity">
+      <div class="db-username">{{ user.username }}</div>
+      <div class="db-email">{{ user.email }}</div>
+      <div class="db-user-id">ID: {{ user.id }}</div>
+    </div>
+
+    <!-- Info grid -->
+    <div class="db-info-grid">
+
+      <div class="db-info-cell">
+        <div class="db-info-label">Username</div>
+        <div class="db-info-val">{{ user.username }}</div>
+      </div>
+
+      <div class="db-info-cell">
+        <div class="db-info-label">Email</div>
+        <div class="db-info-val">{{ user.email }}</div>
+      </div>
+
+      <div class="db-info-cell">
+        <div class="db-info-label">First Name</div>
+        <div class="db-info-val">{{ user.first_name|default:"—" }}</div>
+      </div>
+
+      <div class="db-info-cell">
+        <div class="db-info-label">Last Name</div>
+        <div class="db-info-val">{{ user.last_name|default:"—" }}</div>
+      </div>
+
+      <div class="db-info-cell">
+        <div class="db-info-label">Joined</div>
+        <div class="db-info-val">{{ user.date_joined|date:"Y-m-d" }}</div>
+      </div>
+
+      <div class="db-info-cell">
+        <div class="db-info-label">Last Login</div>
+        <div class="db-info-val">{{ user.last_login|date:"Y-m-d H:i"|default:"Never" }}</div>
+      </div>
+
+      <div class="db-info-cell">
+        <div class="db-info-label">Status</div>
+        <div class="db-info-val">
+          {% if user.is_active %}
+            <span class="db-status-active">● Active</span>
+          {% else %}
+            <span class="db-status-inactive">● Inactive</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="db-info-cell">
+        <div class="db-info-label">Role</div>
+        <div class="db-info-val">
+          {% if user.is_superuser %}Admin
+          {% elif user.is_staff %}Staff
+          {% else %}User{% endif %}
+        </div>
+      </div>
 
     </div>
+
+    <!-- Footer actions -->
+    <div class="db-profile-footer">
+      <a href="{% url 'home' %}" class="db-btn ghost">← Back Home</a>
+      <a href="{% url 'edit_profile' %}" class="db-btn gold">✏️ Edit Profile</a>
+    </div>
+
+  </div>
 
 </div>
 

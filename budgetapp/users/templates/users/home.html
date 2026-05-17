@@ -2,224 +2,229 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/main.css' %}">
 
-<div class="container" style="margin-top: 70px;">
 
-    <div class="row align-items-center mb-4">
-        <div class="col-md-8">
-            {% if user.is_authenticated %}
-            <h2 style="font-weight:700; color:#1a1a2e;">
-                Welcome , <span style="color:green;"> {{user.get_full_name|default:user.username|capfirst}}</span> 👋
-            </h2>
-            {% endif %}
-        </div>
-    </div>
-    {% if budget %}
+    <link rel=" stylesheet" href="{% static 'users/css/home.css' %}">
+
+
+
+
+<div class="db-body">
+
+  {% if user.is_authenticated %}
+  <div class="db-greeting">
+    Welcome back, <em>{{ user.get_full_name|default:user.username|capfirst }}</em> 👋
+  </div>
+  <div class="db-subline">Here's your spending snapshot for this cycle.</div>
+  {% endif %}
+
+  {% if budget %}
 
     {% if day_changed %}
-    <div class="alert alert-info">🌅 A new day has started! Your daily limit has been reset.</div>
+    <div class="db-alert info">
+      <span>🌅</span>
+      <span>A new day has started! Your daily limit has been reset.</span>
+    </div>
     {% endif %}
-    {% if remaining_days <= 3 %} <div class="alert alert-danger">⚠ Only {{ remaining_days }} days left in your budget
-        cycle!
-</div>
-{% endif %}
-{% if is_over_today_limit %}
-<div class="alert alert-warning">⚠ You have exceeded today's spending limit!</div>
-{% endif %}
 
-
-<!-- 80%  WARNING -->
-{% if show_threshold_warning %}
-<div class="alert alert-danger d-flex align-items-center justify-content-between" id="threshold-alert"
-    style="border-left: 5px solid #ff0000; animation: fadeIn 0.5s ease-in;">
-    <div>
-        <strong>⚠️ Warning:</strong> You have used <strong>{{ spent_percentage }}%</strong>
-        of your allowance. Only <strong>{{ current_balance }} EGP</strong> remaining.
+    {% if remaining_days <= 3 %}
+    <div class="db-alert warn">
+      <span>⏰</span>
+      <span>Only <strong>{{ remaining_days }} days</strong> left in your budget cycle.</span>
     </div>
-</div>
-{% endif %}
+    {% endif %}
 
-{% if budget %}
-<div class="card bg-dark text-white p-3 mb-3">
-    <div class="d-flex justify-content-between mb-1">
-        <small>Budget Used</small>
-        <small>{{ spent_percentage }}% of {{ budget.total_amount }} EGP</small>
+    {% if is_over_today_limit %}
+    <div class="db-alert warn">
+      <span>⚠</span>
+      <span>You have <strong>exceeded</strong> today's spending limit.</span>
     </div>
-    <div class="progress" style="height: 10px; background-color: #444;">
-        <div class="progress-bar 
-                    {% if spent_percentage >= 80 %}bg-danger
-                    {% elif spent_percentage >= 50 %}bg-warning
-                    {% else %}bg-success{% endif %}" role="progressbar" style="width: {{ spent_percentage }}%;"
-            aria-valuenow="{{ spent_percentage }}" aria-valuemin="0" aria-valuemax="100">
+    {% endif %}
+
+    {% if show_threshold_warning %}
+    <div class="db-alert warn">
+      <span>⚠️</span>
+      <span>
+        You have used <strong>{{ spent_percentage }}%</strong> of your allowance.
+        Only <strong>{{ current_balance }} EGP</strong> remaining.
+      </span>
+    </div>
+    {% endif %}
+
+    <!-- Budget progress bar -->
+    <div class="db-budget-bar-wrap">
+      <div class="db-budget-bar-header">
+        <div class="db-budget-label">Budget Used</div>
+        <div style="text-align:right;">
+          <div class="db-budget-pct">{{ spent_percentage }}%</div>
+          <div class="db-budget-total">of {{ budget.total_amount }} EGP</div>
         </div>
+      </div>
+      <div class="db-bar-track">
+        <div class="db-bar-fill" style="width:{{ spent_percentage }}%;"></div>
+      </div>
+      <div class="db-bar-meta">
+        <span>Spent: {{ total_expenses }} EGP</span>
+        <span>Remaining: {{ current_balance }} EGP</span>
+      </div>
     </div>
-</div>
-{% endif %}
 
-<div class="row g-3 mb-4">
+    <!-- Stat cards -->
+    <div class="db-grid-4">
+      <div class="db-stat gold">
+        <div class="db-stat-label">Current Balance</div>
+        <div class="db-stat-value">{{ current_balance }}</div>
+        <div class="db-stat-unit">EGP</div>
+      </div>
+      <div class="db-stat sky">
+        <div class="db-stat-label">Safe Daily Limit</div>
+        <div class="db-stat-value">{{ safe_daily_limit }}</div>
+        <div class="db-stat-unit">EGP / day</div>
+      </div>
+      <div class="db-stat mint">
+        <div class="db-stat-label">Remaining Today</div>
+        <div class="db-stat-value">{{ remaining_daily_limit }}</div>
+        <div class="db-stat-unit">EGP</div>
+      </div>
+      <div class="db-stat rose">
+        <div class="db-stat-label">Remaining Days</div>
+        <div class="db-stat-value">{{ remaining_days }}</div>
+        <div class="db-stat-unit">days left</div>
+      </div>
+    </div>
 
-    <div class="col-md-8">
-        <div class="row g-3">
+    <!-- Cycle period -->
+    <div class="db-cycle-card">
+      <div class="db-cycle-icon">📅</div>
+      <div>
+        <div class="db-cycle-label">Cycle Period</div>
+        <div class="db-cycle-val">{{ budget.start_date }} → {{ budget.end_date }}</div>
+      </div>
+    </div>
 
-            <div class="col-6">
-                <div class="card bg-dark text-white p-3 text-center h-100">
-                    <h6 class="text-muted mb-1">Current Balance</h6>
-                    <h3 style="color:#ffd166;">{{ current_balance }} EGP</h3>
-                </div>
-            </div>
+    <!-- Expenses + Chart -->
+    <div class="db-two-col">
 
-            <div class="col-6">
-                <div class="card bg-dark text-white p-3 text-center h-100">
-                    <h6 class="text-muted mb-1">Safe Daily Limit</h6>
-                    <h3 style="color:#00d4ff;">{{ safe_daily_limit }} EGP</h3>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="card bg-dark text-white p-3 text-center h-100">
-                    <h6 class="text-muted mb-1">Remaining Today</h6>
-                    <h3 style="color:#00ffb3;">{{ remaining_daily_limit }} EGP</h3>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="card bg-dark text-white p-3 text-center h-100">
-                    <h6 class="text-muted mb-1">Remaining Days</h6>
-                    <h3 style="color:#ff6b6b;">{{ remaining_days }}</h3>
-                </div>
-            </div>
-
-            <div class="col-12">
-                <div class="card bg-dark text-white p-3 text-center">
-                    <h6 class="text-muted mb-1">Cycle Period</h6>
-                    <span>{{ budget.start_date }} → {{ budget.end_date }}</span>
-                </div>
-            </div>
-
+      <div class="db-expenses-card">
+        <div class="db-expenses-header">
+          <div class="db-expenses-title">Recent Expenses</div>
+          <div class="db-btn-group">
+            <a href="{% url 'add_expense' %}" class="db-btn green">+ Add Expense</a>
+            <form method="POST" action="{% url 'delete_budget' %}" style="margin:0;">
+              {% csrf_token %}
+              <button type="submit" class="db-btn danger"
+                onclick="return confirm('Are you sure? This will delete your budget cycle and ALL expenses.')">
+                🗑 Delete Cycle
+              </button>
+            </form>
+          </div>
         </div>
+
+        {% if expenses %}
+          {% for e in expenses %}
+          <div class="db-expense-row">
+            <div class="db-expense-dot" style="background:{{ e.color|default:'#f07070' }};"></div>
+            <div class="db-expense-cat">{{ e.get_category_display }}</div>
+            <div class="db-expense-date">{{ e.expense_date }}</div>
+            <div class="db-expense-amt">-{{ e.amount }} EGP</div>
+            <a href="{% url 'delete_expense' e.id %}" class="db-del-btn"
+               onclick="return confirm('Delete this expense?')">Delete</a>
+          </div>
+          {% endfor %}
+          <div class="db-expenses-footer">
+            <div class="db-total-label">Total Expenses</div>
+            <div class="db-total-val">-{{ total_expenses }} EGP</div>
+          </div>
+        {% else %}
+          <div style="padding:40px 24px;text-align:center;color:var(--muted);font-size:14px;">
+            No expenses yet.
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="db-chart-card">
+        <div class="db-chart-title">Spending by Category</div>
+        {% if expenses %}
+          <canvas id="expensePieChart" style="display:block;margin:0 auto;" width="220" height="220"></canvas>
+          <div class="db-legend" id="chartLegend"></div>
+        {% else %}
+          <div style="text-align:center;color:var(--muted);font-size:14px;margin-top:40px;">
+            No expenses yet.
+          </div>
+        {% endif %}
+      </div>
+
     </div>
 
-    <div class="col-md-4">
-        <div class="card bg-dark text-white p-3 text-center">
-            <h6 class="text-muted mb-2">Spending by Category</h6>
-            {% if expenses %}
-            <div style="max-height: 250px; display: flex; align-items: center; justify-content: center;">
-                <canvas id="expensePieChart"></canvas>
-            </div>
-            {% else %}
-            <p class="text-muted mt-3">No expenses yet.</p>
-            {% endif %}
-        </div>
+  {% else %}
+
+  <!-- No budget state -->
+  <div class="db-empty">
+    <div class="db-empty-card">
+      <div class="db-empty-icon">💰</div>
+      <div class="db-empty-title">No Budget Cycle Yet</div>
+      <div class="db-empty-desc">
+        Create your first budget cycle to start tracking your daily spending
+        and stay in control of your finances.
+      </div>
+      <a href="{% url 'setup_budget' %}" class="db-empty-btn">Create Budget Cycle</a>
     </div>
-</div>
+  </div>
 
-<div class="row g-3 mb-4">
-
-    <div class="col-md-12">
-        <div class="card bg-dark text-white p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Recent Expenses</h5>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'add_expense' %}" class="btn btn-sm btn-success">+ Add Expense</a>
-                    <form method="POST" action="{% url 'delete_budget' %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-danger"
-                            onclick="return confirm('Are you sure? This will delete your budget cycle and ALL expenses.')">
-                            🗑️ Delete Cycle
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            {% if expenses %}
-            {% for e in expenses %}
-            <div class="d-flex justify-content-between border-bottom py-2">
-                <span class="col-5">{{ e.get_category_display }}</span>
-                <span class="text-muted small col-4">{{ e.expense_date }}</span>
-                <span class="col-1" style="color:#ff6b6b;">-{{ e.amount }} EGP</span>
-                <span><a href="{% url 'delete_expense' e.id %}" class="btn btn-danger btn-sm"
-                        onclick="return confirm('Delete this expense?')">
-                        Delete
-                    </a></span>
-            </div>
-            {% endfor %}
-            <div class="d-flex justify-content-between pt-3">
-                <strong class="col-11">Total Expenses</strong>
-                <strong class="col-1" style="color:#ff6b6b;">-{{ total_expenses }} EGP</strong>
-            </div>
-            {% else %}
-            <p class="text-muted">No expenses yet.</p>
-            {% endif %}
-        </div>
-    </div>
+  {% endif %}
 
 </div>
 
-{% else %}
-
-<!-- NO BUDGET -->
-<div class="d-flex flex-column align-items-center justify-content-center mb-2" style="min-height: 60vh;">
-    <div class="card bg-dark text-white text-center p-5"
-        style="max-width: 480px; width: 100%; border-radius: 16px; border: 1px solid #333;">
-        <div style="font-size: 60px; margin-bottom: 16px;">💰</div>
-        <h3 style="font-weight: 700;">No Budget Cycle Yet</h3>
-        <p style="color: #aaa; margin-bottom: 24px;">
-            Create your first budget cycle to start tracking your daily spending and stay in control of your finances.
-        </p>
-        <a href="{% url 'setup_budget' %}" class="btn btn-lg"
-            style="background-color: green; color: white; border-radius: 8px; font-weight: 600;">
-            Create Budget Cycle
-        </a>
-    </div>
-</div>
-
-{% endif %}
-</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const labels = {{ category_labels| safe }};
-    const data = {{ category_data| safe }};
+  const labels = {{ category_labels|safe }};
+  const data   = {{ category_data|safe }};
 
-    const colors = [
-        '#ff6b6b', '#ffd166', '#00d4ff',
-        '#00ffb3', '#a29bfe', '#fd79a8'
-    ];
+  const colors = ['#f07070','#4ec9f0','#3de8a0','#e8b84b','#c97ef0','#fd79a8'];
 
-    const ctx = document.getElementById('expensePieChart').getContext('2d');
+  const canvas = document.getElementById('expensePieChart');
+  if (canvas && labels.length) {
+    const ctx = canvas.getContext('2d');
     new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: colors.slice(0, labels.length),
-                borderColor: '#1a1a2e',
-                borderWidth: 2,
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: 'white',
-                        padding: 15,
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.parsed / total) * 100).toFixed(1);
-                            return ` ${context.label}: ${context.parsed} EGP (${percentage}%)`;
-                        }
-                    }
-                }
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: colors.slice(0, labels.length),
+          borderColor: '#1e2230',
+          borderWidth: 3,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        cutout: '62%',
+        responsive: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.label}: ${ctx.parsed.toLocaleString()} EGP`
             }
+          }
         }
+      }
     });
+
+    const total = data.reduce((a, b) => a + b, 0);
+    const legend = document.getElementById('chartLegend');
+    labels.forEach((label, i) => {
+      const pct = total > 0 ? ((data[i] / total) * 100).toFixed(1) : 0;
+      legend.innerHTML += `
+        <div class="db-legend-row">
+          <div class="db-legend-left">
+            <div class="db-legend-dot" style="background:${colors[i]};"></div>
+            ${label}
+          </div>
+          <div class="db-legend-pct">${pct}%</div>
+        </div>`;
+    });
+  }
 </script>
 
 {% endblock content %}

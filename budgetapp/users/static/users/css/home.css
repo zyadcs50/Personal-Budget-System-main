@@ -1,0 +1,841 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Space+Grotesk:wght@500;700&display=swap");
+
+:root {
+  --gold: #e8b84b;
+  --gold-dim: #c49a30;
+  --mint: #3de8a0;
+  --sky: #4ec9f0;
+  --rose: #f07070;
+  --surface: #111318;
+  --panel: #181c24;
+  --card: #1e2230;
+  --border: rgba(255, 255, 255, 0.07);
+  --text: #f0f0f4;
+  --muted: #7a7f94;
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  text-align: left !important;
+}
+
+/* ─── Top bar ─────────────────────────────── */
+.db-topbar {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.db-logo {
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  color: var(--gold);
+}
+
+.db-logo span {
+  color: var(--text);
+}
+
+.db-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #111;
+  text-transform: uppercase;
+}
+
+/* ─── Page body ───────────────────────────── */
+.db-body {
+  padding: 36px 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.db-greeting {
+  font-family: "Syne", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.db-greeting em {
+  color: var(--gold);
+  font-style: normal;
+}
+
+.db-subline {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+/* ─── Alerts ──────────────────────────────── */
+.db-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  margin-bottom: 10px;
+  border-left: 3px solid;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.db-alert.warn {
+  background: rgba(240, 112, 112, 0.1);
+  border-color: var(--rose);
+  color: #f0a0a0;
+}
+.db-alert.info {
+  background: rgba(78, 201, 240, 0.09);
+  border-color: var(--sky);
+  color: #a0dff0;
+}
+.db-alert strong {
+  font-weight: 500;
+}
+
+/* ─── Budget progress bar ─────────────────── */
+.db-budget-bar-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  margin-bottom: 24px;
+}
+
+.db-budget-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.db-budget-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.db-budget-pct {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--rose);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+.db-budget-total {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: "Space Grotesk", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.db-bar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  height: 8px;
+  overflow: visible;
+  position: relative;
+}
+
+.db-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #e85c5c, var(--rose));
+  position: relative;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.db-bar-fill::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  width: 16px;
+  height: 16px;
+  background: var(--rose);
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 3px rgba(240, 112, 112, 0.3);
+}
+
+.db-bar-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.db-bar-meta span {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Stat cards ──────────────────────────── */
+.db-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.db-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  text-align: left;
+}
+
+.db-stat:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.db-stat::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.db-stat.gold::before { background: var(--gold); }
+.db-stat.sky::before  { background: var(--sky); }
+.db-stat.mint::before { background: var(--mint); }
+.db-stat.rose::before { background: var(--rose); }
+
+.db-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.db-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+  text-align: left;
+}
+
+.db-stat.gold .db-stat-value { color: var(--gold); }
+.db-stat.sky  .db-stat-value { color: var(--sky); }
+.db-stat.mint .db-stat-value { color: var(--mint); }
+.db-stat.rose .db-stat-value { color: var(--rose); }
+
+.db-stat-unit {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: left;
+}
+
+/* ─── Cycle card ──────────────────────────── */
+.db-cycle-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.db-cycle-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(232, 184, 75, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.db-cycle-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+.db-cycle-val {
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ─── Two-column layout ───────────────────── */
+.db-two-col {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+}
+
+/* ─── Expenses card ───────────────────────── */
+.db-expenses-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.db-expenses-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.db-expenses-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.db-btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.db-btn {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: "DM Sans", sans-serif;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.db-btn.green {
+  background: rgba(61, 232, 160, 0.12);
+  color: var(--mint);
+  border-color: rgba(61, 232, 160, 0.25);
+}
+.db-btn.green:hover {
+  background: rgba(61, 232, 160, 0.2);
+}
+.db-btn.danger {
+  background: rgba(240, 112, 112, 0.1);
+  color: var(--rose);
+  border-color: rgba(240, 112, 112, 0.25);
+}
+.db-btn.danger:hover {
+  background: rgba(240, 112, 112, 0.2);
+}
+
+.db-expense-row {
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.db-expense-row:last-child {
+  border-bottom: none;
+}
+.db-expense-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.db-expense-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.db-expense-cat {
+  flex: 1;
+  font-size: 14px;
+}
+.db-expense-date {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 90px;
+}
+.db-expense-amt {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rose);
+  min-width: 90px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+
+.db-del-btn {
+  background: none;
+  border: 1px solid rgba(240, 112, 112, 0.2);
+  color: var(--rose);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: "DM Sans", sans-serif;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.db-del-btn:hover {
+  background: rgba(240, 112, 112, 0.15);
+  color: var(--rose);
+}
+
+.db-expenses-footer {
+  padding: 14px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.db-total-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.db-total-val {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--rose);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+
+/* ─── Chart card ──────────────────────────── */
+.db-chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.db-chart-title {
+  font-family: "Syne", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.db-legend {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.db-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+}
+
+.db-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.db-legend-left {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+}
+.db-legend-pct {
+  color: var(--text);
+  font-weight: 500;
+  font-family: "Space Grotesk", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Empty state ─────────────────────────── */
+.db-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.db-empty-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 52px 48px;
+  text-align: center;
+  max-width: 460px;
+  width: 100%;
+}
+
+.db-empty-icon {
+  font-size: 56px;
+  margin-bottom: 18px;
+}
+
+.db-empty-title {
+  font-family: "Syne", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.db-empty-desc {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.db-empty-btn {
+  display: inline-block;
+  background: var(--gold);
+  color: #111;
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 13px 32px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.db-empty-btn:hover {
+  opacity: 0.88;
+  color: #111;
+}
+
+/* ─── Transaction page extras ─────────────── */
+.db-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.db-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+.db-page-title em {
+  color: var(--gold);
+  font-style: normal;
+}
+
+.db-page-sub {
+  font-size: 14px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.db-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: rgba(61, 232, 160, 0.12);
+  color: var(--mint);
+  border: 1px solid rgba(61, 232, 160, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: "DM Sans", sans-serif;
+  text-decoration: none;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.db-btn-add:hover {
+  background: rgba(61, 232, 160, 0.2);
+  color: var(--mint);
+}
+
+.db-summary-strip {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.db-summary-pill {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.db-summary-pill-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.db-summary-pill-val {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+
+.db-tx-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.db-tx-card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.db-tx-card-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.db-tx-count {
+  font-size: 12px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 3px 10px;
+}
+
+.db-date-group {
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
+}
+
+.db-date-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--gold);
+  background: rgba(232, 184, 75, 0.1);
+  border: 1px solid rgba(232, 184, 75, 0.2);
+  border-radius: 99px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.db-date-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.db-tx-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.db-tx-row:last-child { border-bottom: none; }
+.db-tx-row:hover { background: rgba(255, 255, 255, 0.025); }
+
+.db-tx-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.db-tx-info {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.db-tx-cat {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.db-tx-time {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.db-tx-amt {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rose);
+  min-width: 100px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+
+.db-tx-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.db-edit-btn {
+  background: rgba(232, 184, 75, 0.1);
+  border: 1px solid rgba(232, 184, 75, 0.25);
+  color: var(--gold);
+  border-radius: 6px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-family: "DM Sans", sans-serif;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s;
+}
+
+.db-edit-btn:hover {
+  background: rgba(232, 184, 75, 0.2);
+  color: var(--gold);
+}
+
+.db-tx-footer {
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.db-tx-footer-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.db-tx-footer-val {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--rose);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+
+/* ─── Responsive ──────────────────────────── */
+@media (max-width: 768px) {
+  .db-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .db-two-col {
+    grid-template-columns: 1fr;
+  }
+  .db-body {
+    padding: 24px 16px;
+  }
+  .db-topbar {
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .db-page-header {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .db-summary-strip {
+    flex-wrap: wrap;
+  }
+  .db-tx-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+
+
+.db-stat-value {
+  font-family: sans-serif !important;
+}
